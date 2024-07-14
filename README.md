@@ -109,7 +109,7 @@ Why SimpleRNN performs better than LSTM at the same 50 units of layer?
 - Data is relatively simple
 - LSTM might result in overfitting when dealing with simple dataset
 
-Now that we have developed the model to predict taxis demand/supply ratio at different area, how can we bring this to the taxi drivers? Build Recommender System
+Now that we have developed the model to predict taxis demand/supply ratio at different area, how can we bring this to the taxi drivers? Build Recommender System through Streamlit
 
 ## Recommender Systems
 Three Features:
