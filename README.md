@@ -1,91 +1,136 @@
-# Streaming Wars: A Subreddit Analysis
+# ML-Driven Taxi Positioning for Enhanced Efficiency
 
 ### Problem Statement
 
-Disney+ Data Science Team is evaluating the current streaming wars with its competitor Netflix. Instead of using financial and content analysis, the Team will be assessing the Reddit posts and comments to gain understanding of public perception, user preferences, and emerging trends.
+1. Taxi drivers continue to grapple with falling incomes - ever-rising overhead costs, competition and lower passenger pick-ups
+2. Commuters continue to deal with longer waiting times and higher price surges
+
+Objective: Improve and optimize taxi driver positioning through ML-driven prediction and recommendation system
+
 
 ### Data Preparation
 #### Data Collection
-Public Perception assessment and evaluation from Reddit posts and comments
+1. Public Crowds Volume
+- Potential taxi demand using public transport passenger volume
+- Data from LTA DataMall on Bus Stops and Train Stations passenger volume
 
-Why Reddit?
-- Every day, millions of people around the world post, vote, and comment in communities organized around their interests
-- Reddit has a user-created areas of interest where discussions on Reddit are organized, in this case we can look into r/DisneyPlus and r/netflix Subreddits
-
-How to collect the posts data? 
-- Webscraping of the posts content, such as
-A) Title - post title
-B) Selftext - the body of the post which elaborates the post further
-C) Upvote Ratio - represents the ratio of upvotes to the total votes cast
-D) Created Date - shows when the post is created
-
-#### Data Cleaning
-
-Remove duplicate entries based on the user id post to make sure that each of the post is unique.
-Remove the field with empty input, e.g., some of the users only post the Title without any Selftext
+2. Taxi Availability
+- Supply of taxi based on all available taxis for hire - exclude “Hired” or “Busy”
+- Data extracted from Data.gov.sg API
 
 #### Preprocessing
 
-Combine Title and Selftext into one feature called “post” as our X variable
-Add feature called “label” to classify post as Y variable
+1. Public Crowds Volume
+- Take the total passengers tap in volume as the crowd volume
+- Create new feature for day_type and time_per_hour combined
+- Represent station code with longitude and latitude
+- Dummify and multiply
+
+2. Taxi Availability
+- Retrieve taxi availability within a month in an hourly format
+- Data extracted contains latitude and longitude of availability taxis at specific date and time
+- Convert the date and time into an hourly time format
+- Use datetime feature to determine if date is weekday or weekend
 
 ### Exploratory Data Analysis
+#### Uber H3 Spatial Indexing
+Partitioning the Earth's surface into hexagonal cells
 
-A) Upvote Ratio
-- Represents the ratio of upvotes to the total votes cast
-- The average of upvote ratio for both DisneyPlus and Netflix datasets are above 0.50, indicating that the posts are well-received by the other Reddit users
+Key Features and Advantages:
+- Grid system to bucket into hexagonal areas
+- Multiple levels of resolution, allowing representation at varying levels of details
+- Simplify analysis - only one distance between a hexagon centerpoint to its neighbors’
+- Scalable analysis, enabling efficient zooming in and out
 
-B) Frequent Words
-- Tokenize, lemmatize and remove stop words
-- Use POS to collect the most frequent adjectives in the posts
-- Disney+ has more “New” and “Original” but less of “Good”
+Procedures:
+- Initiate a hexagon from center of Singapore with resolution = 7
+- Expand the hexagon by 1 time, then continuously until it occupies the entire Singapore
+- Iterate through each taxis, bus, and train points
+- Locate at which hexagon each point is
+- Count the number of points at each hexagon
 
-C) Sentiment Analysis
-- VADER Lexicon is a lexicon specifically designed for sentiment analysis of social media texts
-- It does not only provide a sentiment score for each word but also considers context, punctuation, capitalization, degree modifiers, and emoticons
-- VADER is widely used and performs well with informal texts like tweets and online reviews
-- Both Disney+ and Netflix posts have 1.0 compound score using VADER lexicon, indicating that the overall sentiment is positive
+Final Parameter:
+- Number of trains and buses passengers and available taxis at each hexagon at different time
+- Use taxi Demand (Train and Bus Passenger) / Supply (Taxi Availability) ratio
 
+#### Some Facts
+Top 5 areas with highest available taxis at the start and end of office hours
+- Weekday 08:00 -> Woodlands, Yishun, Hougang, Tanjong Pagar, Changi
+- Weekday 18:00 -> Yishun, Hougang, Tanjong Pagar, Marina Bay, Changi
+- Weekend 11:00 -> Marina Bay, Newton, Bugis, Kallang, Changi
+- Weekend 18:00 -> Yishun, Marina Bay, Bugis, Tanjong Pagar, Changi
+
+Top 5 areas with highest passenger volumes at the start and end of office hours
+- Weekday 08:00 -> Bukit Panjang, Yishun, Sengkang, Hougang, Bedok
+- Weekday 18:00 -> Jurong East, Sengkang, Tanjong Pagar, Bugis, Marina Bay
+- Weekend 11:00 -> Yishun, Sengkang, Toa Payoh, Bugis, Tanjong Pagar
+- Weekend 18:00 -> Sengkang, Tanjong Pagar, Bugis, Marina Bay, Kallang
 
 ### Modeling
 #### Process
-A) Split the data into train and test with equal proportion of Disney+ and Netflix on both sets (~50-50)
-B) Fit the different combinations of vectorizer and classifier below
-Vectorizer: Countvectorizer, TF-IDF
-Classifier: Multinomial Naive Bayes, Logistic Regression, KNN, Random Forest, Bagging, and Gradient Boosting
-C) Hyperparameter tuning on the best performing model combination
+What are we modeling?
+- Demand / supply ratio for next hour, from 08:00 to 23:59 weekday and weekend
+- For all the hexagons
+- Rolling window approach with size = 3
+
+Process:
+- Remove all irrelevant columns
+- Transpose to move the time frame into rows
+- Remove the 01 to 04 data as trains and buses are not in operation during 02 to 05 AM
+
+#### Model
+- Auto ARIMA - Baseline
+- RNN - SimpleRNN
+- RNN - LSTM
 
 #### Metrics 
-Accuracy. Why?
-A) Easy to interpret
-B) Good for balanced datasets
-C) Treats all prediction errors equally
-
-Before we build our model, we would want to set the baseline model to ensure that the model that we are building indeed brings value
-1. Baseline Model
-The baseline model is defined as the accuracy of simply predicting if the post contains keyword 'disney' or 'netflix'. The baseline accuracy is 5%.
-   
-2. Create and Build Model
-Amongst all different combinations, TF-IDF classifier with Logistic Regression classifier performs the best on the test dataset as it gives the highest accuracy.
-
-3. Hyperparameter Tuning
-Further fine tune the model by running different combinations of parameters through pipeline and GridSearch. The accuracy with the most optimized hyperparameters is 87%
+Root Mean Squared Error (RMSE)
+- Evaluate the accuracy of model
+- Average magnitude of the errors between predicted vs actual values
+- Lower values = better model
 
 #### Modeling Conclusion
-Why TF-IDF could perform better than CountVectorizer?
-TF-IDF gives higher weights to terms that are frequent in a document but rare in the corpus, effectively reducing the importance of common words like and highlighting the importance of words that are more specific to the documents
+Result:
+A) Auto ARIMA - Baseline = 143.74 RMSE
+B) SimpleRNN - 32 units = 131.43 RMSE
+C) SimpleRNN - 50 units = 53.34 RMSE
+D) SimpleRNN - 128 units = 139.50 RMSE
+E) LSTM - 50 units = 130.76 RMSE
 
-Why LogisticRegression could perform better than the rest of the classifiers?
-Text data is typically high-dimensional and sparse, meaning that most features (words or n-grams) have zero or very low frequency. Logistic regression can handle sparse data well, especially when using techniques like TF-IDF (Term Frequency-Inverse Document Frequency) to represent text features.
-Logistic regression tends to be robust to noisy features because it estimates the probability of the class label based on the weighted sum of all features, effectively ignoring irrelevant features with low weigh n: Logistic regression calso an be regularized using techniques like L1 (Lasso) or L2 (Ridge) regularization, which penalize large parameter values.
+Evaluation:
+Best performing model is SimpleRNN with 50 units of layer
 
-### Recommendations
-- Provide insights on public perception and preferences towards Disney+
-- Predict public opinion or comments and perform classification
-- Optimize marketing and content creation strategy towards a more targeted public
-- Study the competitor dynamics, customer experience and preference
+Why SimpleRNN with 50 units of layer performs better than those with 32 and 128 units?
+- 50 units might provide the right balance between underfitting and overfitting
+- Moderate complexity of the data might align better with 50 units
 
-### Limitations
-- Data scraped for this analysis are <2,000 - to scrape more data on further studies / analysis
-- Reddit users come from diverse backgrounds and have different type of writing styles
-- Potential biases amongst communities towards certain items
+Why SimpleRNN performs better than LSTM at the same 50 units of layer?
+- Data contains short-term patterns which gives SimpleRNN the advantage
+- Data is relatively simple
+- LSTM might result in overfitting when dealing with simple dataset
+
+Now that we have developed the model to predict taxis demand/supply ratio at different area, how can we bring this to the taxi drivers? Build Recommender System
+
+### Recommender Systems
+Three Features:
+- Recommend the area to go for the next hour based on highest ratio. If now is 21:45, recommend for 22:00
+- Calculate the duration in traffic to the recommended area and use Google Map Distance API
+- Provide the direction from origin to the recommended area and Google Map Direction API
+
+Methodology:
+- Calculate the time until the next hour
+- Generate prediction for the next hour
+- Iterate through the predicted values for all area
+- Recommend the area with highest ratio
+- Calculate the time required from origin to the recommended area
+- Check if the time required is less than the time until next hour
+- If not, provide the next highest ratio
+- Provide the direction to the destination
+
+### Limitation
+- Public transport volume dataset
+Data comes in the hourly format for weekday or weekend. More granular data in hour or minutes time frame
+- Inaccuracy of taxi demand
+Taxi demand is based on public transport volume. Get the actual taxi demand based on the taxi pick up time
+- Limited application
+Applicable to only taxi as it is the only open source data. Extend the concept to ride hailing services provided the demand and supply data are available
