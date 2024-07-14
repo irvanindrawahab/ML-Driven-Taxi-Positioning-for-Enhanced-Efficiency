@@ -1,6 +1,6 @@
 # ML-Driven Taxi Positioning for Enhanced Efficiency
 
-### Problem Statement
+## Problem Statement
 
 1. Taxi drivers continue to grapple with falling incomes - ever-rising overhead costs, competition and lower passenger pick-ups
 2. Commuters continue to deal with longer waiting times and higher price surges
@@ -8,8 +8,8 @@
 Objective: Improve and optimize taxi driver positioning through ML-driven prediction and recommendation system
 
 
-### Data Preparation
-#### Data Collection
+## Data Preparation
+### Data Collection
 1. Public Crowds Volume
 - Potential taxi demand using public transport passenger volume
 - Data from LTA DataMall on Bus Stops and Train Stations passenger volume
@@ -18,7 +18,7 @@ Objective: Improve and optimize taxi driver positioning through ML-driven predic
 - Supply of taxi based on all available taxis for hire - exclude “Hired” or “Busy”
 - Data extracted from Data.gov.sg API
 
-#### Preprocessing
+### Preprocessing
 
 1. Public Crowds Volume
 - Take the total passengers tap in volume as the crowd volume
@@ -32,8 +32,8 @@ Objective: Improve and optimize taxi driver positioning through ML-driven predic
 - Convert the date and time into an hourly time format
 - Use datetime feature to determine if date is weekday or weekend
 
-### Exploratory Data Analysis
-#### Uber H3 Spatial Indexing
+## Exploratory Data Analysis
+### Uber H3 Spatial Indexing
 Partitioning the Earth's surface into hexagonal cells
 
 Key Features and Advantages:
@@ -53,7 +53,7 @@ Final Parameter:
 - Number of trains and buses passengers and available taxis at each hexagon at different time
 - Use taxi Demand (Train and Bus Passenger) / Supply (Taxi Availability) ratio
 
-#### Some Facts
+### Some Facts
 Top 5 areas with highest available taxis at the start and end of office hours
 - Weekday 08:00 -> Woodlands, Yishun, Hougang, Tanjong Pagar, Changi
 - Weekday 18:00 -> Yishun, Hougang, Tanjong Pagar, Marina Bay, Changi
@@ -66,8 +66,8 @@ Top 5 areas with highest passenger volumes at the start and end of office hours
 - Weekend 11:00 -> Yishun, Sengkang, Toa Payoh, Bugis, Tanjong Pagar
 - Weekend 18:00 -> Sengkang, Tanjong Pagar, Bugis, Marina Bay, Kallang
 
-### Modeling
-#### Process
+## Modeling
+### Process
 What are we modeling?
 - Demand / supply ratio for next hour, from 08:00 to 23:59 weekday and weekend
 - For all the hexagons
@@ -78,18 +78,18 @@ Process:
 - Transpose to move the time frame into rows
 - Remove the 01 to 04 data as trains and buses are not in operation during 02 to 05 AM
 
-#### Model
+### Model
 - Auto ARIMA - Baseline
 - RNN - SimpleRNN
 - RNN - LSTM
 
-#### Metrics 
+### Metrics 
 Root Mean Squared Error (RMSE)
 - Evaluate the accuracy of model
 - Average magnitude of the errors between predicted vs actual values
 - Lower values = better model
 
-#### Modeling Conclusion
+### Modeling Conclusion
 Result:
 A) Auto ARIMA - Baseline = 143.74 RMSE
 B) SimpleRNN - 32 units = 131.43 RMSE
@@ -111,7 +111,7 @@ Why SimpleRNN performs better than LSTM at the same 50 units of layer?
 
 Now that we have developed the model to predict taxis demand/supply ratio at different area, how can we bring this to the taxi drivers? Build Recommender System
 
-### Recommender Systems
+## Recommender Systems
 Three Features:
 - Recommend the area to go for the next hour based on highest ratio. If now is 21:45, recommend for 22:00
 - Calculate the duration in traffic to the recommended area and use Google Map Distance API
@@ -127,7 +127,7 @@ Methodology:
 - If not, provide the next highest ratio
 - Provide the direction to the destination
 
-### Limitation
+## Limitation
 - Public transport volume dataset
 Data comes in the hourly format for weekday or weekend. More granular data in hour or minutes time frame
 - Inaccuracy of taxi demand
